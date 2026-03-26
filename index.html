@@ -3,469 +3,552 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ACHITOS — Podcast Cover</title>
-<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Bebas+Neue&family=Special+Elite&display=swap" rel="stylesheet">
+<title>The Upside Down</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Cormorant+Garamond:ital,wght@0,300;0,600;1,300;1,600&display=swap" rel="stylesheet">
 <style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
-  body {
-    background: #111;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    min-height: 100vh;
-    font-family: 'Space Mono', monospace;
-    gap: 30px;
-    padding: 40px 20px;
+  :root {
+    --red: #c0392b;
+    --deep-red: #7b1a12;
+    --black: #050508;
+    --dim: #0d0d14;
+    --mist: #1a1a2e;
+    --gold: #c9a84c;
+    --pale: #e8ddd0;
+    --glow: rgba(192, 57, 43, 0.6);
   }
 
-  .page-label {
-    color: #555;
-    font-size: 11px;
-    letter-spacing: 3px;
-    text-transform: uppercase;
-  }
-
-  .cover-wrapper {
-    position: relative;
-    width: 600px;
-    height: 600px;
-  }
-
-  /* Offset shadow */
-  .cover-wrapper::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: #E8FF00;
-    transform: translate(10px, 10px);
-    z-index: 0;
-  }
-
-  .cover {
-    position: relative;
-    width: 600px;
-    height: 600px;
-    background: #F5F0E8;
-    border: 4px solid #111;
+  html, body {
+    width: 100%; height: 100%;
+    background: var(--black);
     overflow: hidden;
-    z-index: 1;
+    cursor: none;
   }
 
-  /* Torn paper texture via repeating gradient */
-  .cover::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background-image: 
-      repeating-linear-gradient(0deg, transparent, transparent 28px, rgba(0,0,0,0.04) 28px, rgba(0,0,0,0.04) 29px),
-      repeating-linear-gradient(90deg, transparent, transparent 28px, rgba(0,0,0,0.02) 28px, rgba(0,0,0,0.02) 29px);
+  /* ── Custom Cursor ── */
+  #cursor {
+    position: fixed; width: 12px; height: 12px;
+    background: var(--red); border-radius: 50%;
+    pointer-events: none; z-index: 9999;
+    transform: translate(-50%, -50%);
+    mix-blend-mode: difference;
+    transition: transform 0.1s ease;
+  }
+  #cursor-trail {
+    position: fixed; width: 36px; height: 36px;
+    border: 1px solid rgba(192,57,43,0.4); border-radius: 50%;
+    pointer-events: none; z-index: 9998;
+    transform: translate(-50%, -50%);
+    transition: left 0.18s ease, top 0.18s ease;
+  }
+
+  /* ── Background layers ── */
+  .bg-noise {
+    position: fixed; inset: 0; z-index: 0;
+    background-image:
+      repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0,0,0,0.08) 2px,
+        rgba(0,0,0,0.08) 4px
+      );
     pointer-events: none;
+    animation: scanlines 8s linear infinite;
+  }
+  @keyframes scanlines {
+    0% { background-position: 0 0; }
+    100% { background-position: 0 100px; }
+  }
+
+  .bg-vignette {
+    position: fixed; inset: 0; z-index: 1;
+    background: radial-gradient(ellipse at center, transparent 30%, rgba(0,0,0,0.95) 100%);
+    pointer-events: none;
+  }
+
+  /* ── Floating particles ── */
+  .particle {
+    position: fixed; border-radius: 50%;
+    pointer-events: none; z-index: 2;
+    animation: drift linear infinite;
+    opacity: 0;
+  }
+  @keyframes drift {
+    0%   { transform: translateY(100vh) translateX(0) rotate(0deg); opacity: 0; }
+    10%  { opacity: 0.6; }
+    90%  { opacity: 0.3; }
+    100% { transform: translateY(-10vh) translateX(80px) rotate(360deg); opacity: 0; }
+  }
+
+  /* ── Distorted background text ── */
+  .ghost-text {
+    position: fixed;
+    font-family: 'Cinzel Decorative', serif;
+    font-weight: 900;
+    color: transparent;
+    -webkit-text-stroke: 1px rgba(192,57,43,0.07);
+    pointer-events: none; z-index: 1;
+    user-select: none;
+    letter-spacing: 0.3em;
+    animation: ghostPulse 6s ease-in-out infinite;
+  }
+  @keyframes ghostPulse {
+    0%, 100% { opacity: 0.4; transform: skewX(0deg); }
+    50%       { opacity: 0.9; transform: skewX(-2deg) scaleX(1.02); }
+  }
+
+  /* ── Scene ── */
+  .scene {
+    position: fixed; inset: 0;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
     z-index: 10;
   }
 
-  /* BIG background text */
-  .bg-text {
-    position: absolute;
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 380px;
-    color: rgba(0,0,0,0.04);
-    top: -60px;
-    left: -30px;
-    letter-spacing: -20px;
-    line-height: 1;
-    user-select: none;
-    z-index: 1;
+  /* ── Eyeball decoration ── */
+  .eye-wrap {
+    position: relative;
+    width: 120px; height: 60px;
+    margin-bottom: 2rem;
+    animation: eyeBlink 4s ease-in-out infinite;
   }
-
-  /* Red block top */
-  .block-top {
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 12px;
-    background: #E63946;
-    z-index: 3;
-  }
-
-  /* Bold black strip */
-  .strip-diagonal {
-    position: absolute;
-    width: 150%;
-    height: 60px;
-    background: #111;
-    top: 180px;
-    left: -30px;
-    transform: rotate(-3deg);
-    z-index: 4;
-    display: flex;
-    align-items: center;
-    padding-left: 60px;
+  .eye-outer {
+    width: 120px; height: 60px;
+    border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+    background: linear-gradient(135deg, #1a0a08, #2d0c09);
+    border: 1px solid rgba(192,57,43,0.5);
+    display: flex; align-items: center; justify-content: center;
     overflow: hidden;
-  }
-  .strip-diagonal span {
-    font-family: 'Space Mono', monospace;
-    font-size: 11px;
-    color: #E8FF00;
-    letter-spacing: 5px;
-    white-space: nowrap;
-    text-transform: uppercase;
-  }
-
-  /* Main title */
-  .title {
-    position: absolute;
-    top: 30px;
-    left: 28px;
-    z-index: 5;
-    line-height: 0.85;
-  }
-  .title-main {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 148px;
-    color: #111;
-    letter-spacing: -4px;
-    display: block;
-    -webkit-text-stroke: 2px #111;
-  }
-  .title-outline {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 148px;
-    color: transparent;
-    -webkit-text-stroke: 2.5px #111;
-    display: block;
-    letter-spacing: -4px;
-    margin-top: -10px;
-  }
-
-  /* Subtitle tag */
-  .subtitle-tag {
-    position: absolute;
-    top: 260px;
-    left: 28px;
-    z-index: 5;
-    background: #E63946;
-    padding: 4px 12px;
-    border: 2px solid #111;
-    transform: rotate(1deg);
-  }
-  .subtitle-tag span {
-    font-size: 11px;
-    letter-spacing: 3px;
-    text-transform: uppercase;
-    color: #F5F0E8;
-    font-weight: 700;
-  }
-
-  /* SVG doodle area */
-  .doodles {
-    position: absolute;
-    inset: 0;
-    z-index: 3;
-    pointer-events: none;
-  }
-
-  /* Coffee mug */
-  .mug {
-    position: absolute;
-    bottom: 120px;
-    right: 40px;
-    z-index: 6;
-  }
-
-  /* Flower */
-  .flower {
-    position: absolute;
-    bottom: 20px;
-    left: 30px;
-    z-index: 6;
-  }
-
-  /* Pen */
-  .pen-wrap {
-    position: absolute;
-    bottom: 80px;
-    right: 160px;
-    z-index: 6;
-    transform: rotate(-25deg);
-  }
-
-  /* Bottom bar */
-  .bottom-bar {
-    position: absolute;
-    bottom: 0; left: 0; right: 0;
-    height: 50px;
-    background: #111;
-    z-index: 7;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 24px;
-    border-top: 4px solid #E8FF00;
-  }
-  .bottom-bar .ep-num {
-    font-size: 10px;
-    letter-spacing: 4px;
-    color: #E8FF00;
-    text-transform: uppercase;
-  }
-  .bottom-bar .dots {
-    display: flex;
-    gap: 6px;
-  }
-  .bottom-bar .dots span {
-    width: 8px; height: 8px;
-    border-radius: 50%;
-    background: #E8FF00;
-  }
-  .bottom-bar .dots span:nth-child(2) { background: #E63946; }
-  .bottom-bar .dots span:nth-child(3) { background: #F5F0E8; }
-
-  /* Stamp circle */
-  .stamp {
-    position: absolute;
-    top: 300px;
-    right: 20px;
-    z-index: 8;
-    width: 90px;
-    height: 90px;
-    border: 3px dashed #111;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transform: rotate(12deg);
-    background: #E8FF00;
-  }
-  .stamp-inner {
-    text-align: center;
-    font-family: 'Special Elite', cursive;
-    font-size: 9px;
-    line-height: 1.3;
-    color: #111;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-  }
-
-  /* Sticker: "raw & real" */
-  .sticker {
-    position: absolute;
-    top: 140px;
-    right: 28px;
-    z-index: 8;
-    background: #E63946;
-    border: 3px solid #111;
-    padding: 6px 10px;
-    transform: rotate(-8deg);
-  }
-  .sticker span {
-    font-family: 'Special Elite', cursive;
-    font-size: 13px;
-    color: #F5F0E8;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-  }
-
-  /* X marks / scribbles */
-  .x-mark {
-    position: absolute;
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 40px;
-    color: rgba(0,0,0,0.12);
-    z-index: 2;
-    user-select: none;
-  }
-
-  /* DOWNLOAD BUTTON */
-  .download-btn {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    background: #E8FF00;
-    color: #111;
-    border: 4px solid #111;
-    padding: 14px 36px;
-    font-family: 'Space Mono', monospace;
-    font-size: 13px;
-    font-weight: 700;
-    letter-spacing: 3px;
-    text-transform: uppercase;
-    cursor: pointer;
-    box-shadow: 6px 6px 0 #111;
-    transition: box-shadow 0.1s, transform 0.1s;
     position: relative;
   }
-  .download-btn:hover {
-    box-shadow: 2px 2px 0 #111;
-    transform: translate(4px, 4px);
+  .eye-iris {
+    width: 42px; height: 42px; border-radius: 50%;
+    background: radial-gradient(circle at 38% 38%, #8b1a10, #3a0808 60%, #1a0404);
+    box-shadow: 0 0 20px var(--glow);
+    position: relative;
+    animation: irisMove 8s ease-in-out infinite;
   }
-  .download-btn:active {
-    box-shadow: 0 0 0 #111;
-    transform: translate(6px, 6px);
+  @keyframes irisMove {
+    0%, 100% { transform: translateX(0); }
+    25%       { transform: translateX(10px); }
+    75%       { transform: translateX(-10px); }
+  }
+  .eye-pupil {
+    width: 18px; height: 18px; border-radius: 50%;
+    background: #000;
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 0 8px 2px rgba(255,255,255,0.05);
+  }
+  .eye-shine {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: rgba(255,255,255,0.7);
+    position: absolute; top: 28%; left: 30%;
+  }
+  @keyframes eyeBlink {
+    0%, 90%, 100% { transform: scaleY(1); }
+    95%            { transform: scaleY(0.05); }
   }
 
-  .note {
-    color: #444;
-    font-size: 10px;
-    letter-spacing: 2px;
+  /* ── Title ── */
+  .title-wrap {
     text-align: center;
+    margin-bottom: 3.5rem;
+    position: relative;
+  }
+  .title-main {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: clamp(1rem, 3.5vw, 1.6rem);
+    font-weight: 400;
+    color: var(--pale);
+    letter-spacing: 0.6em;
+    text-transform: uppercase;
+    line-height: 1;
+    text-shadow:
+      0 0 30px rgba(192,57,43,0.3),
+      0 0 60px rgba(192,57,43,0.1);
+    animation: titleFlicker 7s ease-in-out infinite;
+  }
+  @keyframes titleFlicker {
+    0%, 96%, 100% { opacity: 1; }
+    97%            { opacity: 0.4; }
+    98%            { opacity: 1; }
+    99%            { opacity: 0.2; }
+  }
+  .title-sub {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(0.65rem, 1.5vw, 0.75rem);
+    font-weight: 300;
+    font-style: italic;
+    color: rgba(192,57,43,0.7);
+    letter-spacing: 0.35em;
+    margin-top: 1rem;
+    text-transform: lowercase;
+  }
+  .title-divider {
+    width: 100%; height: 1px; margin-top: 1.2rem;
+    background: linear-gradient(to right, transparent, var(--red), transparent);
+    opacity: 0.4;
   }
 
-  @media print {
-    body { background: white; padding: 0; }
-    .download-btn, .page-label, .note { display: none; }
-    .cover-wrapper { width: 100vw; height: 100vw; }
-    .cover { width: 100%; height: 100%; }
+  /* ── The Portal Button ── */
+  .portal-wrap {
+    position: relative;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  /* Outer orbit rings */
+  .orbit {
+    position: absolute;
+    border-radius: 50%;
+    border: 1px solid;
+    pointer-events: none;
+  }
+  .orbit-1 {
+    width: 260px; height: 260px;
+    border-color: rgba(192,57,43,0.12);
+    animation: orbitSpin 18s linear infinite;
+  }
+  .orbit-2 {
+    width: 320px; height: 220px;
+    border-color: rgba(201,168,76,0.08);
+    animation: orbitSpin 28s linear infinite reverse;
+  }
+  .orbit-3 {
+    width: 200px; height: 300px;
+    border-color: rgba(192,57,43,0.06);
+    animation: orbitSpin 22s linear infinite;
+  }
+  @keyframes orbitSpin {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+  }
+
+  /* Aura behind button */
+  .aura {
+    position: absolute;
+    width: 180px; height: 80px;
+    background: radial-gradient(ellipse, rgba(192,57,43,0.35) 0%, transparent 70%);
+    filter: blur(20px);
+    border-radius: 50%;
+    animation: auraPulse 3s ease-in-out infinite;
+    pointer-events: none;
+  }
+  @keyframes auraPulse {
+    0%, 100% { transform: scale(1); opacity: 0.7; }
+    50%       { transform: scale(1.3); opacity: 1; }
+  }
+
+  /* The button itself */
+  .portal-btn {
+    position: relative;
+    display: inline-block;
+    text-decoration: none;
+    padding: 1.3rem 3.5rem;
+    font-family: 'Cinzel Decorative', serif;
+    font-size: clamp(0.65rem, 1.8vw, 0.85rem);
+    font-weight: 700;
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+    color: var(--pale);
+    cursor: none;
+    outline: none;
+    border: none;
+    background: transparent;
+    z-index: 5;
+    transition: color 0.4s ease;
+  }
+
+  /* Multi-layered border */
+  .portal-btn::before {
+    content: '';
+    position: absolute; inset: 0;
+    border: 1px solid rgba(192,57,43,0.7);
+    clip-path: polygon(
+      12px 0%, calc(100% - 12px) 0%,
+      100% 12px, 100% calc(100% - 12px),
+      calc(100% - 12px) 100%, 12px 100%,
+      0% calc(100% - 12px), 0% 12px
+    );
+    transition: all 0.4s ease;
+  }
+  .portal-btn::after {
+    content: '';
+    position: absolute;
+    inset: 4px;
+    border: 1px solid rgba(192,57,43,0.2);
+    clip-path: polygon(
+      8px 0%, calc(100% - 8px) 0%,
+      100% 8px, 100% calc(100% - 8px),
+      calc(100% - 8px) 100%, 8px 100%,
+      0% calc(100% - 8px), 0% 8px
+    );
+    transition: all 0.4s ease;
+  }
+
+  /* Corner decorations */
+  .btn-corner {
+    position: absolute;
+    width: 8px; height: 8px;
+    background: var(--red);
+    transition: all 0.4s ease;
+  }
+  .btn-corner.tl { top: -1px; left: -1px; clip-path: polygon(0 0, 100% 0, 0 100%); }
+  .btn-corner.tr { top: -1px; right: -1px; clip-path: polygon(0 0, 100% 0, 100% 100%); }
+  .btn-corner.bl { bottom: -1px; left: -1px; clip-path: polygon(0 0, 100% 100%, 0 100%); }
+  .btn-corner.br { bottom: -1px; right: -1px; clip-path: polygon(100% 0, 100% 100%, 0 100%); }
+
+  /* Glitch lines inside button on hover */
+  .btn-glitch {
+    position: absolute; inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+  }
+  .btn-glitch::before, .btn-glitch::after {
+    content: attr(data-text);
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    font-family: 'Cinzel Decorative', serif;
+    font-size: clamp(0.65rem, 1.8vw, 0.85rem);
+    font-weight: 700;
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .btn-glitch::before { color: var(--red); }
+  .btn-glitch::after  { color: var(--gold); }
+
+  /* Hover state */
+  .portal-btn:hover { color: #fff; }
+  .portal-btn:hover::before {
+    border-color: var(--red);
+    box-shadow: 0 0 20px rgba(192,57,43,0.4), inset 0 0 20px rgba(192,57,43,0.05);
+  }
+  .portal-btn:hover .btn-corner { width: 12px; height: 12px; }
+  .portal-btn:hover .btn-glitch::before {
+    opacity: 1;
+    animation: glitchA 0.4s steps(1) infinite;
+  }
+  .portal-btn:hover .btn-glitch::after {
+    opacity: 0.4;
+    animation: glitchB 0.4s steps(1) infinite 0.1s;
+  }
+  @keyframes glitchA {
+    0%  { clip-path: inset(20% 0 60% 0); transform: translate(calc(-50% - 2px), -50%); }
+    25% { clip-path: inset(60% 0 10% 0); transform: translate(calc(-50% + 2px), -50%); }
+    50% { clip-path: inset(40% 0 40% 0); transform: translate(-50%, -50%); }
+    75% { clip-path: inset(0% 0 80% 0); transform: translate(calc(-50% - 3px), -50%); }
+    100%{ clip-path: inset(70% 0 0% 0); transform: translate(calc(-50% + 1px), -50%); }
+  }
+  @keyframes glitchB {
+    0%  { clip-path: inset(50% 0 30% 0); transform: translate(calc(-50% + 3px), -50%); }
+    50% { clip-path: inset(10% 0 70% 0); transform: translate(calc(-50% - 2px), -50%); }
+    100%{ clip-path: inset(80% 0 5% 0);  transform: translate(-50%, -50%); }
+  }
+
+  /* Active / click */
+  .portal-btn:active {
+    transform: scale(0.97);
+    color: var(--red);
+  }
+  .portal-btn:active::before {
+    box-shadow: 0 0 40px var(--glow), inset 0 0 40px rgba(192,57,43,0.15);
+  }
+
+  /* ── Floating clocks ── */
+  .float-el {
+    position: fixed; pointer-events: none; z-index: 3;
+    animation: floatDrift ease-in-out infinite;
+  }
+  @keyframes floatDrift {
+    0%, 100% { transform: translateY(0) rotate(var(--rot,0deg)); }
+    50%       { transform: translateY(-18px) rotate(calc(var(--rot, 0deg) + 5deg)); }
+  }
+  .clock-svg { opacity: 0.07; }
+  .eye-svg   { opacity: 0.06; }
+
+  /* ── Bottom tagline ── */
+  .tagline {
+    position: fixed; bottom: 2.5rem; left: 50%;
+    transform: translateX(-50%);
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 0.65rem;
+    font-weight: 300;
+    font-style: italic;
+    letter-spacing: 0.5em;
+    color: rgba(192,57,43,0.3);
+    text-transform: lowercase;
+    white-space: nowrap;
+    z-index: 10;
+  }
+
+  /* ── Horizontal ruling lines ── */
+  .rule {
+    position: fixed; left: 0; right: 0; height: 1px;
+    background: linear-gradient(to right, transparent, rgba(192,57,43,0.08), transparent);
+    z-index: 2;
   }
 </style>
 </head>
 <body>
 
-<div class="page-label">achitos — podcast cover art</div>
+<!-- Cursor -->
+<div id="cursor"></div>
+<div id="cursor-trail"></div>
 
-<div class="cover-wrapper" id="cover">
-  <div class="cover">
+<!-- Background effects -->
+<div class="bg-noise"></div>
+<div class="bg-vignette"></div>
 
-    <!-- lined paper bg text -->
-    <div class="bg-text">A</div>
+<!-- Ghost text layers -->
+<div class="ghost-text" style="font-size:18vw; top:-5vh; left:-2vw; opacity:0.3;">IV</div>
+<div class="ghost-text" style="font-size:6vw; bottom:10vh; right:5vw; animation-delay:-3s; opacity:0.2;">DEMOGORGON</div>
 
-    <!-- top red bar -->
-    <div class="block-top"></div>
+<!-- Horizontal rules -->
+<div class="rule" style="top: 15%;"></div>
+<div class="rule" style="bottom: 18%;"></div>
 
-    <!-- X scribbles -->
-    <div class="x-mark" style="top:310px;left:20px;transform:rotate(-5deg)">×</div>
-    <div class="x-mark" style="top:380px;left:260px;transform:rotate(8deg);font-size:24px">×</div>
-
-    <!-- Main title -->
-    <div class="title">
-      <span class="title-main">ACHITOS</span>
-      <span class="title-outline">ACHITOS</span>
-    </div>
-
-    <!-- Diagonal strip -->
-    <div class="strip-diagonal">
-      <span>self journals · raw thoughts · daily pages · self journals · raw thoughts ·&nbsp;&nbsp;self journals · raw thoughts · daily pages</span>
-    </div>
-
-    <!-- Subtitle tag -->
-    <div class="subtitle-tag">
-      <span>self journals</span>
-    </div>
-
-    <!-- Sticker -->
-    <div class="sticker">
-      <span>raw & real</span>
-    </div>
-
-    <!-- Stamp circle -->
-    <div class="stamp">
-      <div class="stamp-inner">every<br/>damn<br/>day</div>
-    </div>
-
-    <!-- COFFEE MUG SVG -->
-    <div class="mug">
-      <svg width="80" height="90" viewBox="0 0 80 90" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <!-- steam -->
-        <path d="M24 12 Q20 4 24 0" stroke="#111" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-        <path d="M34 10 Q30 2 34 0" stroke="#111" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-        <path d="M44 12 Q40 4 44 0" stroke="#111" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-        <!-- mug body -->
-        <rect x="4" y="18" width="58" height="52" rx="4" fill="#E8FF00" stroke="#111" stroke-width="3"/>
-        <!-- handle -->
-        <path d="M62 30 Q82 30 82 45 Q82 60 62 60" stroke="#111" stroke-width="3.5" fill="none" stroke-linecap="round"/>
-        <!-- saucer -->
-        <ellipse cx="33" cy="72" rx="36" ry="8" fill="#E63946" stroke="#111" stroke-width="2.5"/>
-        <!-- heart on mug -->
-        <text x="18" y="50" font-size="22" fill="#E63946" font-family="serif">♥</text>
-        <!-- pencil mark on mug -->
-        <path d="M42 44 L50 36 L56 38 L48 46 Z" fill="#111"/>
-        <path d="M50 36 L52 32 L56 34 L56 38 Z" fill="#111"/>
-        <path d="M42 44 L40 50 L46 48 Z" fill="#111"/>
-      </svg>
-    </div>
-
-    <!-- FLOWER SVG -->
-    <div class="flower">
-      <svg width="75" height="110" viewBox="0 0 75 110" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <!-- stem -->
-        <path d="M38 105 Q32 80 38 55" stroke="#111" stroke-width="3" fill="none" stroke-linecap="round"/>
-        <!-- leaves -->
-        <path d="M38 80 Q20 72 22 58 Q36 64 38 80Z" fill="#111" stroke="#111" stroke-width="1"/>
-        <path d="M38 70 Q56 62 55 50 Q41 56 38 70Z" fill="#444" stroke="#111" stroke-width="1"/>
-        <!-- petals -->
-        <ellipse cx="38" cy="32" rx="8" ry="14" fill="#E63946" stroke="#111" stroke-width="2"/>
-        <ellipse cx="38" cy="32" rx="8" ry="14" fill="#E63946" stroke="#111" stroke-width="2" transform="rotate(45 38 32)"/>
-        <ellipse cx="38" cy="32" rx="8" ry="14" fill="#E63946" stroke="#111" stroke-width="2" transform="rotate(90 38 32)"/>
-        <ellipse cx="38" cy="32" rx="8" ry="14" fill="#E63946" stroke="#111" stroke-width="2" transform="rotate(135 38 32)"/>
-        <!-- center -->
-        <circle cx="38" cy="32" r="10" fill="#E8FF00" stroke="#111" stroke-width="2.5"/>
-        <circle cx="38" cy="32" r="4" fill="#111"/>
-      </svg>
-    </div>
-
-    <!-- PEN SVG -->
-    <div class="pen-wrap">
-      <svg width="16" height="110" viewBox="0 0 16 110" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <rect x="2" y="8" width="12" height="80" rx="2" fill="#111" stroke="#111" stroke-width="1.5"/>
-        <rect x="4" y="10" width="4" height="76" rx="1" fill="#E8FF00"/>
-        <path d="M2 88 L8 105 L14 88Z" fill="#111"/>
-        <rect x="2" y="4" width="12" height="8" rx="2" fill="#E63946" stroke="#111" stroke-width="1.5"/>
-      </svg>
-    </div>
-
-    <!-- Bottom bar -->
-    <div class="bottom-bar">
-      <span class="ep-num">achitos.podcast</span>
-      <div class="dots">
-        <span></span><span></span><span></span>
-      </div>
-    </div>
-
-  </div>
+<!-- Floating SVG elements -->
+<div class="float-el" style="top:12%; left:8%; --rot:-15deg; animation-duration:7s;">
+  <svg class="clock-svg" width="90" height="90" viewBox="0 0 90 90" fill="none">
+    <circle cx="45" cy="45" r="40" stroke="#c0392b" stroke-width="0.8"/>
+    <circle cx="45" cy="45" r="3" fill="#c0392b"/>
+    <line x1="45" y1="45" x2="45" y2="15" stroke="#c0392b" stroke-width="0.8"/>
+    <line x1="45" y1="45" x2="63" y2="50" stroke="#c0392b" stroke-width="0.8"/>
+    <!-- Melting drips -->
+    <path d="M 45 85 Q 43 90 45 95 Q 47 90 45 85" fill="#c0392b" opacity="0.4"/>
+    <path d="M 15 60 Q 10 65 8 72" stroke="#c0392b" stroke-width="0.6" opacity="0.4"/>
+    <path d="M 75 60 Q 80 67 82 75" stroke="#c0392b" stroke-width="0.6" opacity="0.4"/>
+    <!-- Tick marks -->
+    <g stroke="#c0392b" stroke-width="0.5" opacity="0.5">
+      <line x1="45" y1="6" x2="45" y2="12"/>
+      <line x1="45" y1="78" x2="45" y2="84"/>
+      <line x1="6" y1="45" x2="12" y2="45"/>
+      <line x1="78" y1="45" x2="84" y2="45"/>
+    </g>
+  </svg>
 </div>
 
-<button class="download-btn" onclick="downloadPDF()">
-  ↓ Download as PDF
-</button>
-<div class="note">high quality · 600×600px · print-ready</div>
+<div class="float-el" style="bottom:20%; right:7%; --rot:12deg; animation-duration:9s; animation-delay:-2s;">
+  <svg class="eye-svg" width="80" height="40" viewBox="0 0 80 40" fill="none">
+    <ellipse cx="40" cy="20" rx="38" ry="18" stroke="#c0392b" stroke-width="0.7"/>
+    <circle cx="40" cy="20" r="12" stroke="#c0392b" stroke-width="0.7"/>
+    <circle cx="40" cy="20" r="5" fill="#c0392b" opacity="0.3"/>
+    <circle cx="35" cy="16" r="2" fill="#c0392b" opacity="0.5"/>
+  </svg>
+</div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<div class="float-el" style="top:55%; left:4%; --rot:5deg; animation-duration:11s; animation-delay:-5s;">
+  <svg class="clock-svg" width="50" height="50" viewBox="0 0 50 50" fill="none" opacity="0.4">
+    <rect x="5" y="5" width="40" height="40" stroke="#c9a84c" stroke-width="0.6"/>
+    <rect x="12" y="12" width="26" height="26" stroke="#c9a84c" stroke-width="0.4"/>
+    <line x1="25" y1="5" x2="25" y2="45" stroke="#c9a84c" stroke-width="0.3" opacity="0.5"/>
+    <line x1="5" y1="25" x2="45" y2="25" stroke="#c9a84c" stroke-width="0.3" opacity="0.5"/>
+  </svg>
+</div>
+
+<div class="float-el" style="top:25%; right:10%; --rot:-8deg; animation-duration:13s; animation-delay:-7s;">
+  <svg width="60" height="60" viewBox="0 0 60 60" fill="none" opacity="0.05">
+    <path d="M 30 5 L 55 50 L 5 50 Z" stroke="#c0392b" stroke-width="1"/>
+    <path d="M 30 18 L 46 46 L 14 46 Z" stroke="#c0392b" stroke-width="0.5"/>
+    <circle cx="30" cy="34" r="4" stroke="#c0392b" stroke-width="0.7"/>
+  </svg>
+</div>
+
+<!-- Particles -->
 <script>
-async function downloadPDF() {
-  const btn = document.querySelector('.download-btn');
-  btn.textContent = '⏳ Generating...';
-  btn.disabled = true;
+  (function(){
+    const colors = ['#c0392b','#7b1a12','#c9a84c','#8b0000'];
+    for(let i=0;i<22;i++){
+      const p = document.createElement('div');
+      p.className = 'particle';
+      const s = Math.random()*3+1;
+      p.style.cssText = `
+        width:${s}px; height:${s}px;
+        background:${colors[Math.floor(Math.random()*colors.length)]};
+        left:${Math.random()*100}vw;
+        animation-duration:${8+Math.random()*14}s;
+        animation-delay:${Math.random()*-15}s;
+        filter:blur(${Math.random()*1}px);
+      `;
+      document.body.appendChild(p);
+    }
+  })();
+</script>
 
-  try {
-    const cover = document.getElementById('cover');
-    const canvas = await html2canvas(cover, {
-      scale: 4,
-      useCORS: true,
-      allowTaint: true,
-      backgroundColor: null,
-      logging: false
-    });
+<!-- Main scene -->
+<div class="scene">
 
-    const { jsPDF } = window.jspdf;
-    const pdf = new jsPDF({
-      orientation: 'portrait',
-      unit: 'mm',
-      format: [150, 150],
-      compress: false
-    });
+  <!-- Eye -->
+  <div class="eye-wrap">
+    <div class="eye-outer">
+      <div class="eye-iris">
+        <div class="eye-pupil"></div>
+        <div class="eye-shine"></div>
+      </div>
+    </div>
+  </div>
 
-    const imgData = canvas.toDataURL('image/png', 1.0);
-    pdf.addImage(imgData, 'PNG', 0, 0, 150, 150, '', 'FAST');
-    pdf.save('achitos-cover.pdf');
-  } catch(e) {
-    console.error(e);
-    alert('Error generating PDF. Try again!');
-  }
+  <!-- Title -->
+  <div class="title-wrap">
+    <div class="title-main">Stranger Things</div>
+    <div class="title-sub">season 4 &nbsp;·&nbsp; episode 1 &nbsp;·&nbsp; the void awaits</div>
+    <div class="title-divider"></div>
+  </div>
 
-  btn.textContent = '↓ Download as PDF';
-  btn.disabled = false;
-}
+  <!-- Portal Button -->
+  <div class="portal-wrap">
+    <div class="orbit orbit-1"></div>
+    <div class="orbit orbit-2"></div>
+    <div class="orbit orbit-3"></div>
+    <div class="aura"></div>
+
+    <a
+      class="portal-btn"
+      href="https://kisskh.ws/Drama/Stranger-Things---Season-4/Episode-1?id=5013&ep=91985&page=0&pageSize=100"
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      <span class="btn-corner tl"></span>
+      <span class="btn-corner tr"></span>
+      <span class="btn-corner bl"></span>
+      <span class="btn-corner br"></span>
+      <div class="btn-glitch" data-text="Enter the Portal"></div>
+      Enter the Portal
+    </a>
+  </div>
+
+</div>
+
+<!-- Bottom tagline -->
+<div class="tagline">the mind flayer is watching &nbsp;·&nbsp; you've been warned</div>
+
+<script>
+  // Cursor
+  const cur = document.getElementById('cursor');
+  const trail = document.getElementById('cursor-trail');
+  let mx=0,my=0;
+  document.addEventListener('mousemove', e => {
+    mx = e.clientX; my = e.clientY;
+    cur.style.left = mx+'px';
+    cur.style.top  = my+'px';
+    trail.style.left = mx+'px';
+    trail.style.top  = my+'px';
+  });
+  // Scale cursor on button hover
+  document.querySelector('.portal-btn').addEventListener('mouseenter', () => {
+    cur.style.transform = 'translate(-50%,-50%) scale(2.5)';
+    trail.style.borderColor = 'rgba(192,57,43,0.8)';
+  });
+  document.querySelector('.portal-btn').addEventListener('mouseleave', () => {
+    cur.style.transform = 'translate(-50%,-50%) scale(1)';
+    trail.style.borderColor = 'rgba(192,57,43,0.4)';
+  });
 </script>
 </body>
 </html>
